@@ -43,9 +43,23 @@ def get_price_info(article_url, **kwargs):
         content_text = content.text.strip()
         
         try:
-            start_index = content_text.index('[售價]')
+            # 嘗試尋找 '[售價]' 或 '[希望價格]' 開始的位置
+            start_price_index = content_text.find('[售價]')
+            start_want_price_index = content_text.find('[希望價格]')
+            
+            # 確定最先出現的標籤，並設定為開始位置
+            if start_price_index == -1 or (start_want_price_index != -1 and start_want_price_index < start_price_index):
+                start_index = start_want_price_index
+                start_label_length = len('[希望價格]')
+            else:
+                start_index = start_price_index
+                start_label_length = len('[售價]')
+            
+            # 尋找 '[交易方式/地點]' 結束的位置
             end_index = content_text.index('[交易方式/地點]', start_index)
-            price_info = content_text[start_index:end_index].strip()
+            
+            # 提取並返回信息，不包含起始和結束的標籤
+            price_info = content_text[start_index + start_label_length:end_index].strip()
             return price_info
         except ValueError:
             return "文章中未找到價格資訊或交易方式資訊。"
